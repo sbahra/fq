@@ -38,40 +38,6 @@
 #include "fqd_private.h"
 #ifndef NO_BCD
 #include <bcd.h>
-
-static void bcd_signal_handler(int s, siginfo_t *si, void *unused) {
-  (void)si;
-  (void)unused;
-  bcd_fatal("This is a fatal crash");
-  signal(s, SIG_DFL);
-  return;
-}
-
-static void
-bcd_setup_sigaction(void)
-{
-  struct sigaction sa;
-  int signals[] = {
-    SIGSEGV,
-    SIGFPE,
-    SIGABRT,
-    SIGBUS,
-    SIGILL,
-    SIGFPE
-  };
-
-  sa.sa_sigaction = bcd_signal_handler;
-  sa.sa_flags = SA_SIGINFO | SA_ONSTACK;
-
-  for (size_t i = 0; i < sizeof(signals) / sizeof(*signals); i++) {
-    if (sigaction(signals[i], &sa, NULL) == -1) {
-      fprintf(stderr, "warning: failed to set signal "
-          "handler %d\n", signals[i]);
-    }
-  }
-
-  return;
-}
 #else
 typedef void *bcd_t;
 #endif
@@ -252,13 +218,14 @@ int main(int argc, char **argv) {
     if (bcd_attach(&global_bcd, &error) == -1)
       goto fatal;
 
-    if (bcd_kv(&global_bcd, "application", "fqd", &error) == -1)
-      goto fatal;
-
     if (bcd_kv(&global_bcd, "version", FQ_VERSION, &error) == -1)
       goto fatal;
 
-    bcd_setup_sigaction();
+    /*
+     * Use 0 instead of BCD_SIGACTION_RAISE if you don't want to generate a
+     * core dump.
+     */
+    bcd_sigaction(NULL, BCD_SIGACTION_RAISE);
   }
 #endif
   fqd_config_init(nodeid, config_path, queue_path);
