@@ -39,6 +39,7 @@ DTRACEFLAGS=
 EXTRA_CFLAGS=$(VENDOR_CFLAGS) -g -D_REENTRANT -std=gnu99 -pedantic -Wall
 EXTRA_CFLAGS+=-DVARLIBFQDIR=\"$(VARLIBFQ)\"
 EXTRA_CFLAGS+=-DLIBEXECDIR=\"$(LIBEXECDIR)/fq\"
+EXTRA_CFLAGS+=-I/opt/backtrace/include
 #EXTRA_CFLAGS+=-DDEBUG
 
 CLIENT_OBJ=fq_client.o fq_msg.o fq_utils.o
@@ -119,7 +120,7 @@ endif
 
 CFLAGS+=$(EXTRA_CFLAGS)
 SHCFLAGS+=$(EXTRA_CFLAGS)
-LDFLAGS+=$(VENDOR_LDFLAGS)
+LDFLAGS+=$(VENDOR_LDFLAGS) -L/opt/backtrace/lib
 
 fqd.h:	fqd.h.in
 	sed -e 's/@@FQ_MAJOR@@/'$(FQ_MAJOR)'/g;' \
